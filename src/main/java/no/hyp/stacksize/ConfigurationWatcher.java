@@ -12,16 +12,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
  * the plugin reads the configuration again. This allows a user to edit the configuration and see
  * the changes in game without reloading the server.
  */
-class ConfigurationWatcher implements Runnable {
-
-    private final Stacksize plugin;
-
-    private final Path path;
-
-    public ConfigurationWatcher(Stacksize plugin, Path path) {
-        this.plugin = plugin;
-        this.path = path;
-    }
+record ConfigurationWatcher(Stacksize plugin, Path path) implements Runnable {
 
     @Override
     public void run() {
@@ -45,10 +36,9 @@ class ConfigurationWatcher implements Runnable {
                 Thread.currentThread().interrupt();
                 break;
             }
-            for (WatchEvent event : key.pollEvents()) {
-                if (event.context() instanceof Path) {
-                    WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
-                    if (pathEvent.context().toString().equals("config.yml")) {
+            for (WatchEvent<?> event : key.pollEvents()) {
+                if (event.context() instanceof Path path) {
+                    if (path.toString().equals("config.yml")) {
                         // If the configuration is created, read it.
                         if (event.kind() == ENTRY_CREATE) {
                             Bukkit.getScheduler().runTask(plugin, (() -> {
@@ -58,14 +48,14 @@ class ConfigurationWatcher implements Runnable {
                                 plugin.reloadConfig();
                                 plugin.reloadStackSizes(plugin.isLoggingStackSizeChanges());
                             }));
-                        // If the configuration is deleted, the user is probably replacing it. Do nothing in the meanwhile.
+                            // If the configuration is deleted, the user is probably replacing it. Do nothing in the meanwhile.
                         } else if (event.kind() == ENTRY_DELETE) {
                             Bukkit.getScheduler().runTask(plugin, (() -> {
                                 if (plugin.isLoggingConfigurationModification()) {
                                     plugin.getLogger().info("Configuration was deleted.");
                                 }
                             }));
-                        // If the configuration is modified, reload it.
+                            // If the configuration is modified, reload it.
                         } else if (event.kind() == ENTRY_MODIFY) {
                             Bukkit.getScheduler().runTask(plugin, (() -> {
                                 if (plugin.isLoggingConfigurationModification()) {
