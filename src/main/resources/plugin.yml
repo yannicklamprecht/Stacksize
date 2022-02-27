@@ -1,9 +1,9 @@
 name: Stacksize
 description: Modify the maximum stack sizes of materials.
-version: 1.1.0
+version: 1.2.0
 author: Torm
 main: no.hyp.stacksize.Stacksize
-api-version: 1.13
+api-version: 1.18
 
 commands:
   stacksize:

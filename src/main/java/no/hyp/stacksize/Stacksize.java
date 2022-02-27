@@ -1,6 +1,5 @@
 package no.hyp.stacksize;
 
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import manifold.ext.rt.api.Jailbreak;
 import net.minecraft.world.item.Item;
 
 public class Stacksize extends JavaPlugin implements Listener {
@@ -111,19 +111,21 @@ public class Stacksize extends JavaPlugin implements Listener {
     // Find current configuration version. Assume missing config key means version 1.
     int version = this.getConfig().getInt("version", 1);
     // Version 2 is current.
-    if (version == 2) {
+    switch (version) {
+      case 2:
+        // Upgrade from version 1 to 2.
+        break;
+      case 1:
+        this.getConfig().set("version", 2);
+        this.getConfig().set("required", false);
+        this.getConfig()
+            .set("log", Arrays.asList(LOG_CONFIGURATION_MODIFICATION, LOG_STACKSIZE_MODIFICATION));
+        this.saveConfig();
 
-      // Upgrade from version 1 to 2.
-    } else if (version == 1) {
-      this.getConfig().set("version", 2);
-      this.getConfig().set("required", false);
-      this.getConfig()
-          .set("log", Arrays.asList(LOG_CONFIGURATION_MODIFICATION, LOG_STACKSIZE_MODIFICATION));
-      this.saveConfig();
-
-      // Otherwise, do nothing since upgrade method is unknown.
-    } else {
-
+        // Otherwise, do nothing since upgrade method is unknown.
+        break;
+      default:
+        break;
     }
   }
 
@@ -240,17 +242,15 @@ public class Stacksize extends JavaPlugin implements Listener {
       this.vanillaStackSizes.put(material, material.getMaxStackSize());
     }
     try {
+      @Jailbreak
       Item item = CraftMagicNumbers.getItem(material);
 
       // Get the maxItemStack field in Item and change it.
-      Class<?> itemClass = Item.class;
-      Field field = itemClass.getDeclaredField("maxStackSize");
-      field.setAccessible(true);
-      field.setInt(item, size);
-      // Change the maxStack field in the Material.
-      Field mf = Material.class.getDeclaredField("maxStack");
-      mf.setAccessible(true);
-      mf.setInt(material, size);
+
+      item.maxStackSize = size;
+      @Jailbreak
+      Material mat = material;
+      mat.maxStack = size;
       if (log) {
         this.getLogger().info(
             String.format("Applied a maximum stack size of %d to %s.", size, material.name()));
@@ -303,7 +303,6 @@ public class Stacksize extends JavaPlugin implements Listener {
             if (arguments.length == 1) {
               if (sender instanceof Player player) {
                 ItemStack item = player.getInventory().getItemInMainHand();
-                int max = item.getMaxStackSize();
                 Material material = item.getType();
                 sender.sendMessage(stringViewMaterial(material));
               } else {
@@ -436,14 +435,7 @@ public class Stacksize extends JavaPlugin implements Listener {
       } else if (arguments.length == 3) {
         String subCommand = arguments[0];
         if (subCommand.equalsIgnoreCase(SUBCOMMAND_MODIFY)) {
-          List<String> stackSizes = new ArrayList<>();
-          stackSizes.add("1");
-          stackSizes.add("4");
-          stackSizes.add("8");
-          stackSizes.add("16");
-          stackSizes.add("32");
-          stackSizes.add("64");
-          return stackSizes;
+          return List.of("1", "4", "8", "16", "32", "64");
         }
       }
     } else {
