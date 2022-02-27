@@ -26,7 +26,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import manifold.ext.rt.api.Jailbreak;
 import net.minecraft.world.item.Item;
 
 public class Stacksize extends JavaPlugin implements Listener {
@@ -242,15 +241,10 @@ public class Stacksize extends JavaPlugin implements Listener {
       this.vanillaStackSizes.put(material, material.getMaxStackSize());
     }
     try {
-      @Jailbreak
       Item item = CraftMagicNumbers.getItem(material);
-
+      Reflection.ITEM_PROXY.setMaxStackSize(item, size);
       // Get the maxItemStack field in Item and change it.
-
-      item.maxStackSize = size;
-      @Jailbreak
-      Material mat = material;
-      mat.maxStack = size;
+      Reflection.MATERIAL_PROXY.setMaxStackSize(material, size);
       if (log) {
         this.getLogger().info(
             String.format("Applied a maximum stack size of %d to %s.", size, material.name()));
