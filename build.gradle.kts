@@ -1,11 +1,11 @@
 plugins {
     `java-library`
-    id("io.papermc.paperweight.userdev") version "1.3.5-SNAPSHOT"
+    id("io.papermc.paperweight.userdev") version "1.3.5"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "no.hyp.stacksize"
-version = "1.1.0"
+version = "1.2.0"
 
 tasks {
     // Run reobfJar on build
@@ -33,7 +33,7 @@ repositories {
 }
 
 dependencies {
-    paperDevBundle("1.18.1-R0.1-SNAPSHOT")
+    paperDevBundle("1.18.2-R0.1-SNAPSHOT")
     implementation("xyz.jpenilla", "reflection-remapper", "0.1.0-SNAPSHOT")
     testCompileOnly(group= "junit", name= "junit", version= "4.13.1")
 }
